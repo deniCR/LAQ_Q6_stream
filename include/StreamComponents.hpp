@@ -16,9 +16,6 @@ inline bool filter_var_a(vector<Literal> args)
 inline Decimal lift_var_f_map(vector<Decimal> args)
     { return args[0]*args[1];}
 
-//As calsses Producer e Consumer são apenas templates para desenvolver
-// os componentes do stream
-
 //Produtor
 //Load_A1
 class Load_LabelBlock :
@@ -45,7 +42,6 @@ class Load_LabelBlock :
 	            var_bitmap->loadLabelBlock(i);
 			   	send(var_bitmap->labels[i]);
 			}
-			//cout << "Load_a load " << i << " Blocks" << endl;
 		}
 };
 
@@ -74,7 +70,6 @@ class Load_BitmapBlock :
                 var_bitmap->loadBlock(i);
 			   	send(var_bitmap->blocks[i]);
 			}
-			//cout << "Load_a2 load " << i << " Blocks" << endl;
 		}
 };
 
@@ -103,7 +98,6 @@ class Load_DecimalVectorBlock :
                 var_decimalvector->loadBlock(i);
 			   	send(var_decimalvector->blocks[i]);
 			}
-			//cout << "Load_X load " << i << " Blocks" << endl;
 		}
 };
 
@@ -160,7 +154,6 @@ class Dot_BitmapBlock :
 				next=NULL;
 			}
 			this->end();
-			//cout << "Dot end - Last " << wait << endl;
 		}
 };
 
@@ -197,7 +190,6 @@ class Filter_LabelBlock :
 				}
 				next=NULL;
 			}
-			//cout << "Filter_A end - Last " << wait << endl;
 		}
 };
 
@@ -254,7 +246,6 @@ class Filter_DecimalVectorBlock :
 				next=NULL;
 			}
 			this->end();
-			//cout << "Filter_B or C end - Last " << wait << endl;
 		}
 };
 
@@ -288,8 +279,6 @@ class Hadamard_FilteredBitVectorBlock :
 			Data *block_join;
 			Input_data *next=NULL;
 
-			//cout << "Start Hadamard_e !!!" << endl;
-
 			while(pop_next(&next)){
 				if(next){
 					id=next->id;
@@ -305,7 +294,6 @@ class Hadamard_FilteredBitVectorBlock :
 				next=NULL;
 			}
 			this->end();
-			//cout << "Had_D or E end - Last " << wait << endl;
 		}
 };
 
@@ -355,7 +343,6 @@ class Hadamard_DecimalVectorBlock :
 				next=NULL;
 			}
 			this->end();
-			//cout << "Had_S end - Last " << wait << endl;
 		}
 };
 
@@ -412,7 +399,6 @@ class Map :
 				next=NULL;
 			}
 			this->end();
-			//cout << "Map end - Last " << wait << endl;
 		}
 };
 
@@ -445,7 +431,6 @@ class Sum :
 				}
 				next=NULL;
 			}
-		//cout << "Sum end - Last " << wait << endl;
 		}
 };
 
