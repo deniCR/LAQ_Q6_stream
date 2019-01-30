@@ -28,7 +28,6 @@ namespace stream {
 		typedef Data_Stream_struct<Out> Out_elem;
 	
 	public:
-		//Construtor
 		Consumer_Producer(int _max_thread, Consumer<In> next):
 			Consumer<In>(_max_thread), Producer<Out>(next)
 		{}
@@ -40,7 +39,6 @@ namespace stream {
 
 		virtual ~Consumer_Producer(){}
 
-		// Classe Consumer_Producer
 		inline Out *operation_mult(In_elem *){}
 
 		inline void operation() override
