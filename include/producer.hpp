@@ -19,7 +19,6 @@ namespace stream {
 	template<typename T>
 	class Producer {
 		typedef Data_Stream_struct<T> Data_stream;
-		//Lockfree queue MPMC
 		typedef lockfree::queue<Data_stream*> Channel;
 
 	private:
@@ -28,8 +27,8 @@ namespace stream {
 		int max_threads  = 1;
 
 	public:
-		std::vector< Channel *> out; 				//queues dos consumidores
-		std::vector< boost::atomic<bool> *> done; 	//variáveis de sinalização ...
+		std::vector< Channel *> out;
+		std::vector< boost::atomic<bool> *> done;
 
 		Producer() {}
 		Producer (stream::Consumer<T> c):id_counter(0),out_counter(1)
@@ -54,7 +53,6 @@ namespace stream {
 
 		virtual ~Producer() {}
 
-		//Adição de um output/canal de um determinado consumidor
 		void add_consumer(stream::Consumer<T> c)
 		{
 			out.push_back(c.in);
@@ -62,7 +60,6 @@ namespace stream {
 			done.push_back(c.consumer_done);
 		}
 
-		//Adição de um output/canal
 		void add_out(Channel* const &_out, boost::atomic<bool> * &_done)
 		{
 			out.push_back(_out);
@@ -70,7 +67,6 @@ namespace stream {
 			done.push_back(_done);
 		}
 
-		//Envio do elemento para os consumidores
 		void send(Data_stream *e)
 		{ 
 			for(auto const& value: out) {
@@ -90,13 +86,8 @@ namespace stream {
 			send(elem);
 		}
 
-		//A operação deve descrever a ação a tomar para a produção de 
-		// um único elemento da stream **** Ainda não implementado !!!!!
-		//Operação do Produtor
 		virtual void operation(void) {}
 
-		//Para controlar o fluxo de dados é necessário informar os consumidores que 
-		// os produtores já não estão em produção ...
 		void end()
 		{
 			for(auto &value: done){
@@ -106,7 +97,6 @@ namespace stream {
 
 		virtual void run(){
 			thread *producer_thread=NULL;
-			//Run executa as threads da função operação...
 			producer_thread = new thread(&Producer::operation, this);
 			producer_thread->join();
 			end();
