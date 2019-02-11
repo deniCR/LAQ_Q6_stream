@@ -1,10 +1,9 @@
 #ifndef HEADER_STREAM_COMP_H
 #define HEADER_STREAM_COMP_H
 
-#include "../../engine/include/engine.hpp"
+#include "engine.hpp"
 #include "producer.hpp"
 #include "join.hpp"
-#include "new_join.hpp"
 
 using namespace std;
 using namespace boost;
@@ -362,7 +361,7 @@ class Hadamard_FilteredBitVectorBlock :
 };
 
 class Hadamard_FilteredBitVectorBlock_2 : 
-	public New_Join<FilteredBitVectorBlock*,FilteredBitVectorBlock*,FilteredBitVectorBlock*>
+	public Join<FilteredBitVectorBlock*,FilteredBitVectorBlock*,FilteredBitVectorBlock*>
 {
 	typedef Data_Stream_struct<FilteredBitVectorBlock*> Input_1;
 	typedef Data_Stream_struct<FilteredBitVectorBlock*> Input_2;
@@ -373,18 +372,18 @@ class Hadamard_FilteredBitVectorBlock_2 :
 	public:
 		Hadamard_FilteredBitVectorBlock_2(FilteredBitVector *_var_c,
 			int threads,Consumer<FilteredBitVectorBlock*> next):
-			New_Join(threads,next)
+			Join(threads,next)
 		{
             var_c = _var_c;
 		}
 		Hadamard_FilteredBitVectorBlock_2(FilteredBitVector *_var_c,
 			int threads,Consumer<FilteredBitVectorBlock*> next, string _name):
-			New_Join(threads,next,_name)
+			Join(threads,next,_name)
 		{
             var_c = _var_c;
 		}
 
-		using New_Join::exec;
+		using Join::exec;
 
 		inline void exec (Input_1 *in1, Input_2 *in2)
 		{
@@ -449,7 +448,7 @@ class Hadamard_DecimalVectorBlock :
 };
 
 class Hadamard_DecimalVectorBlock_2 : 
-	public New_Join<FilteredBitVectorBlock*,DecimalVectorBlock*,FilteredDecimalVectorBlock*>
+	public Join<FilteredBitVectorBlock*,DecimalVectorBlock*,FilteredDecimalVectorBlock*>
 {
 	typedef Data_Stream_struct<FilteredBitVectorBlock*> Input_1;
 	typedef Data_Stream_struct<DecimalVectorBlock*> Input_2;
@@ -460,13 +459,13 @@ class Hadamard_DecimalVectorBlock_2 :
 	public:
 		Hadamard_DecimalVectorBlock_2(FilteredDecimalVector *_var_g,
 			int threads,Consumer<FilteredDecimalVectorBlock*> next):
-			New_Join(threads,next)
+			Join(threads,next)
 		{
             var_g = _var_g;
 		}
 		Hadamard_DecimalVectorBlock_2(FilteredDecimalVector *_var_g,
 			int threads,Consumer<FilteredDecimalVectorBlock*> next, string _name):
-			New_Join(threads,next,_name)
+			Join(threads,next,_name)
 		{
             var_g = _var_g;
 		}
@@ -547,7 +546,7 @@ class Map :
 };
 
 class Map_2 : 
-	public New_Join<DecimalVectorBlock*, DecimalVectorBlock*, DecimalVectorBlock*>
+	public Join<DecimalVectorBlock*, DecimalVectorBlock*, DecimalVectorBlock*>
 {
 	typedef Data_Stream_struct<DecimalVectorBlock*> Input_1;
 	typedef Data_Stream_struct<DecimalVectorBlock*> Input_2;
@@ -562,26 +561,26 @@ class Map_2 :
 	public:
 		Map_2(DecimalVector *_var_f,int threads,
 			Channel *_out,boost::atomic<bool> *_done):
-			New_Join(threads,_out,_done)
+			Join(threads,_out,_done)
 		{
             var_f = _var_f;
 		}
 		Map_2(DecimalVector *_var_f,int threads,
 			Channel *_out,boost::atomic<bool> *_done,
 			string _name):
-			New_Join(threads,_out,_done,_name)
+			Join(threads,_out,_done,_name)
 		{
             var_f = _var_f;
 		}
 		Map_2(DecimalVector *_var_f,int threads,
 			Consumer<DecimalVectorBlock*> next):
-			New_Join(threads,next)
+			Join(threads,next)
 		{
             var_f = _var_f;
 		}
 		Map_2(DecimalVector *_var_f,int threads,
 			Consumer<DecimalVectorBlock*> next, string _name):
-			New_Join(threads,next,_name)
+			Join(threads,next,_name)
 		{
             var_f = _var_f;
 		}
