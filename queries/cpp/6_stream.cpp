@@ -9,7 +9,7 @@
 #include "include/StreamComponents.hpp"
 
 #ifndef DATASET
-  #define DATASET "8"
+  #define DATASET "1"
 #endif
 
 using namespace engine;
