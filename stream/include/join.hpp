@@ -1,5 +1,5 @@
-#ifndef STREAM_NEW_JOIN_H
-#define STREAM_NEW_JOIN_H
+#ifndef STREAM_JOIN_H
+#define STREAM_JOIN_H
 
 #include <iostream>
 #include <vector>
@@ -28,7 +28,7 @@ namespace stream {
 	 * Inputs are organized by their origin (input1 and input2) and by their id.
 	 */
 	template<typename IN1, typename IN2, typename OUT>
-	class New_Join: 
+	class Join: 
 		public Producer<OUT>,
 		public Consumer<IN1>
 	{
@@ -49,19 +49,19 @@ namespace stream {
 		//Additional signaling variable
 		boost::atomic<bool> *done_join = new boost::atomic<bool>(false);
 
-		New_Join(int _max_thread, Consumer<OUT> next):
+		Join(int _max_thread, Consumer<OUT> next):
 		Producer<OUT>(next), Consumer<IN1>(_max_thread){}
 
-		New_Join(int _max_thread, Consumer<OUT> next, string _name):
+		Join(int _max_thread, Consumer<OUT> next, string _name):
 		Producer<OUT>(next), Consumer<IN1>(_max_thread), name(_name){}
 
-		New_Join(int _max_thread, Channel *_out, boost::atomic<bool> *_done):
+		Join(int _max_thread, Channel *_out, boost::atomic<bool> *_done):
 		Producer<OUT>(_out, _done), Consumer<IN1>(_max_thread){}
 
-		New_Join(int _max_thread, Channel *_out, boost::atomic<bool> *_done, string _name):
+		Join(int _max_thread, Channel *_out, boost::atomic<bool> *_done, string _name):
 		Producer<OUT>(_out, _done), Consumer<IN1>(_max_thread), name(_name){}
 
-		virtual ~New_Join(){}
+		virtual ~Join(){}
 
 		//Search and execute
 		void search_map1(Elem2 *value){
