@@ -1,7 +1,7 @@
 #ifndef HEADER_STREAM_COMP_H
 #define HEADER_STREAM_COMP_H
 
-#include "engine.hpp"
+#include "../../engine/include/engine.hpp"
 #include "producer.hpp"
 #include "join.hpp"
 

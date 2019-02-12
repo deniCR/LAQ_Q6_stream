@@ -30,11 +30,7 @@ QUERIES_DIR = queries/cpp
 
 .PHONY: all clean stream dbms_make
 
-all: dbms_make stream
-
-dbms_make: dbms_makefile
-	make -f dbms_makefile all
-	
+all: stream
 
 stream: $(STREAM_DIR)/bin \
 		$(STREAM_DIR)/bin/q6_stream 
