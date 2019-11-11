@@ -1,3 +1,4 @@
+# Deprecated Makefile
 include dbms_makefile
 
 CXX = g++
