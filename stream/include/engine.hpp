@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 João Afonso. All rights reserved.
+ * Copyright (c) 2019 Daniel Rodrigues. All rights reserved.
  */
 #ifndef ENGINE_H_
 #define ENGINE_H_

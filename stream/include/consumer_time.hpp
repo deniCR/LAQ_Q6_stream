@@ -11,17 +11,9 @@
 #include <tuple>
 #include <boost/thread/thread.hpp>
 #include <boost/atomic.hpp>
-#include "include/producer.hpp"
+
+#include "include/producer_time.hpp"
 #include "../../Channel/include/channel.hpp"
-
-#ifdef D_VTUNE
-  #include "../../Vtune_ITT/tracing.h"
-  using namespace vtune_tracing;
-#endif
-
-#if defined(D_PAPI) || defined(D_PAPI_OPS)
-	#include "../../papi_counters/papi_stream.h"
-#endif
 
 using namespace std;
 using namespace boost;
@@ -29,14 +21,9 @@ using namespace boost;
 namespace stream {
 
 	template<typename T>
-	class Consumer {
+	struct Consumer {
 		typedef Data_Stream_struct<T> Data_stream;
 		typedef channel::Channel<T> Channel;
-
-	private:
-		#ifdef D_VTUNE
-			vtune_tracing::VTuneDomain *vdomain_;
-		#endif
 		
 	public:
 		//Number of threads executed by the Consumer
@@ -48,35 +35,12 @@ namespace stream {
 		// which queue the Consumer is allowed to access/modify
 		int consumer_id=0;
 
-		//PAPI
-		int papi_op=-5;
-
 		Consumer(long _n_threads, stream::Producer<T> *_prev)
 			:consumer_threads(_n_threads)
 		{
 			in = _prev->out;
 			consumer_id = _prev->add_consumer();
 		}
-
-		#if defined(D_PAPI) || defined(D_PAPI_OPS)
-			Consumer(long _n_threads, stream::Producer<T> *_prev,int _papi_op)
-				:consumer_threads(_n_threads)
-			{
-				in = _prev->out;
-				consumer_id = _prev->add_consumer();
-				papi_op=_papi_op;
-			}
-		#endif
-
-		#ifdef D_VTUNE
-			Consumer(long _n_threads, stream::Producer<T> *_prev, vtune_tracing::VTuneDomain *vdomain)
-				:consumer_threads(_n_threads)
-			{
-				in = _prev->out;
-				consumer_id = _prev->add_consumer();
-				vdomain_=vdomain;
-			}
-		#endif
 
 		virtual ~Consumer() 
 		{
@@ -115,17 +79,7 @@ namespace stream {
 
 		void papi_counter()
 		{
-			#if defined(D_PAPI) || defined(D_PAPI_OPS)
-				//start counters
-    			int thread_id = register_start_thread(papi_op);
-			#endif
-    			
 			operation();
-
-			#if defined(D_PAPI) || defined(D_PAPI_OPS)
-				//end counters
-				papi_stop_agregate(thread_id,papi_op);
-			#endif
 		}
 
 		/*
@@ -133,7 +87,8 @@ namespace stream {
 		 * Removal may fail in case there are no elements in the channel.
 		 *
 		 * The function returns false if:
-		 *	- The channel is empty AND the producer has finished producing elements.
+		 *	- The channel is empty,
+		 *	- AND the producer has finished producing elements.
 		 *
 		 * Otherwise, the function returns true.
 		 * 
@@ -142,7 +97,6 @@ namespace stream {
 		 * It is advisable to set the value of the next variable 
 		 * to NULL before executing the function.
 		 */
-
 		bool pop_next(Data_stream** next){
 			bool result = false;
 			int i=0;
@@ -154,52 +108,25 @@ namespace stream {
 			return result;
 		}
 
-		bool pop_next2(Data_stream** next){
-			bool result = false;
-			*next=NULL;
-			if(!(in->empty(consumer_id))){
-				for(int i=0;i<150;++i){
-					if((*next=(Data_stream*)in->pop(consumer_id))!=NULL)
-						break;
-				}
-				result = true;
-			}
-			return result;
-		}
-
 		//Multithread execution
 		virtual void run()
 		{
 			std::vector<boost::thread*> consumers;
 			int i=0;
 
-			#if defined(D_PAPI) || defined(D_PAPI_OPS)
-				for(i=0;i<consumer_threads;++i)
-					consumers.push_back(new boost::thread(&Consumer::papi_counter, this));
-			#else
-				for(i=0;i<consumer_threads;++i)
-					consumers.push_back(new boost::thread(&Consumer::operation, this));
-			#endif
+			for(i=0;i<consumer_threads;++i)
+				consumers.push_back(new boost::thread(&Consumer::operation, this));
 
 
 			for(auto const& consumer_thread: consumers) {
 				consumer_thread->join();
 				delete consumer_thread;
 			}
+
 		}
 
 		virtual void run_seq(){
-			#if defined(D_PAPI) || defined(D_PAPI_OPS)
-				//start counters
-    			int thread_id = register_start_thread(papi_op);
-			#endif
-    			
 			operation();
-
-			#if defined(D_PAPI) || defined(D_PAPI_OPS)
-				//end counters
-				papi_stop_agregate(thread_id,papi_op);
-			#endif
 		}
 	};
 }

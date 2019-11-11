@@ -11,21 +11,13 @@
 #include <tuple>
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
-#include "../../Channel/include/channel.hpp"
 #include <boost/unordered_map.hpp>
 #include <boost/atomic.hpp>
-#include "include/consumer.hpp"
-#include "include/producer.hpp"
-#include "include/consumer_producer.hpp"
 
-#ifdef D_VTUNE
-  #include "../../Vtune_ITT/tracing.h"
-  using namespace vtune_tracing;
-#endif
-
-#if defined(D_PAPI) || defined(D_PAPI_OPS)
-	#include "../../papi_counters/papi_stream.h"
-#endif
+#include "include/consumer_time.hpp"
+#include "include/producer_time.hpp"
+#include "include/consumer_producer_time.hpp"
+#include "../../Channel/include/channel.hpp"
 
 using namespace std;
 using namespace boost;
@@ -40,7 +32,7 @@ namespace stream {
 	 * Inputs are organized by their origin (input1 and input2) and by their id.
 	 */
 	template<typename IN1, typename IN2, typename OUT>
-	class Join: 
+	struct Join: 
 		public Consumer_Producer<IN1,OUT>
 	{
 		typedef Data_Stream_struct<IN1> Elem1;
@@ -49,12 +41,8 @@ namespace stream {
 		typedef channel::Channel<OUT> Channel_out;
 
 	private:
-		string name = "Join";						//Used for debugging issues
-		#ifdef D_VTUNE
-			vtune_tracing::VTuneDomain *vdomain_;
-		#endif
-
 		boost::mutex mutex_map1,mutex_map2;
+		
 		//Unsorted_MAP isn't thread safe ...
   		unordered_map<ID,Elem1*> map1;				//Data received without a pair (IN1)
   		unordered_map<ID,Elem2*> map2;				//Data received without a pair (IN2)
@@ -70,33 +58,6 @@ namespace stream {
 			in_join=prev_2->out;
 			join_consumer_id=prev_2->add_consumer();
 		}
-
-		Join(long _max_thread, Producer<IN1> *prev_1, Producer<IN2> *prev_2, string _name)
-			: Consumer_Producer<IN1,OUT>(_max_thread, prev_1), name(_name)
-		{
-			in_join=prev_2->out;
-			join_consumer_id=prev_2->add_consumer();
-		}
-
-		#if defined(D_PAPI) || defined(D_PAPI_OPS)
-			Join(long _max_thread, Producer<IN1> *prev_1, Producer<IN2> *prev_2, string _name, int papi_op)
-				: Consumer_Producer<IN1,OUT>(_max_thread,papi_op, prev_1), name(_name)
-			{
-				in_join=prev_2->out;
-				join_consumer_id=prev_2->add_consumer();
-			}
-		#endif
-
-		#ifdef D_VTUNE
-			Join(long _max_thread, Producer<IN1> *prev_1, Producer<IN2> *prev_2, string _name,
-				 vtune_tracing::VTuneDomain *vdomain)
-				: Consumer_Producer<IN1,OUT>(_max_thread, prev_1), name(_name)
-			{
-				in_join=prev_2->out;
-				join_consumer_id=prev_2->add_consumer();
-				vdomain_=vdomain;
-			}
-		#endif
 
 		virtual ~Join(){}
 
@@ -169,10 +130,6 @@ namespace stream {
 		{
 			Elem1 *value1=NULL;
 			Elem2 *value2=NULL;
-
-			#ifdef D_VTUNE
-				vdomain_->set_name();
-			#endif
 
 			do {
 				while(!producers_Done() || !in_join->producersDone())

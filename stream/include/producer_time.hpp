@@ -10,31 +10,20 @@
 #include <ctime>
 #include <tuple>
 #include <boost/thread.hpp>
-#include "../../Channel/include/channel.hpp"
 #include <boost/atomic.hpp>
 
-#ifdef D_VTUNE
-  #include "../../Vtune_ITT/tracing.h"
-  using namespace vtune_tracing;
-#endif
-
-#if defined(D_PAPI) || defined(D_PAPI_OPS)
-	#include "../../papi_counters/papi_stream.h"
-#endif
+#include "../../Channel/include/channel.hpp"
 
 using namespace std;
 using namespace boost;
 
 namespace stream {
 	template<typename T>
-	class Producer {
+	struct Producer {
 		typedef Data_Stream_struct<T> Data_stream;
 		typedef channel::Channel<T> Channel;
 
 	private:
-		#ifdef D_VTUNE
-			vtune_tracing::VTuneDomain *vdomain_;
-		#endif
 		//Number of output channels
 		int out_counter = 0;
 		//Number of threads
@@ -47,9 +36,6 @@ namespace stream {
 		{ 
 			out->forcePush((Data_stream *)e);
 		}
-
-		//PAPI
-		int papi_op=-10;
 
 	public:
 		Channel* out;
@@ -71,27 +57,6 @@ namespace stream {
 		{
 			out = new Channel();
 		}
-
-		#if defined(D_PAPI) || defined(D_PAPI_OPS)
-			Producer (long _max_threads, long _n_executions, int _papi_op)
-				:producer_threads(_max_threads),
-				n_executions(_n_executions)
-			{
-				out = new Channel();
-				papi_op=_papi_op;
-			}
-		#endif
-
-		#ifdef D_VTUNE
-			Producer (long _max_threads, long _n_executions,
-					  vtune_tracing::VTuneDomain *vdomain)
-				:producer_threads(_max_threads),
-				n_executions(_n_executions),vdomain_(vdomain)
-			{
-				out = new Channel();
-				vdomain_=vdomain;
-			}
-		#endif
 
 		virtual ~Producer() {}
 
@@ -126,10 +91,25 @@ namespace stream {
 			}
 		}
 
+		//inline std::vector<Data_stream *> getPush()
+		//{
+		//	std::vector<Data_stream *> v;
+		//	for(auto const& value: out)
+		//		v.push_back(value.forceGetPush());
+		//	return v;
+		//}
+
 		inline Data_stream *getSinglePush()
 		{
 			return out->forceGetPush();
 		}
+
+		/*
+		 * Performing the production operation of stream elements.
+		 *
+		 * The code should make explicit the creation and sending of the elements.
+		 *
+		 */
 
 		virtual void  init(void) {}
 		virtual void operation(void) {}
@@ -137,21 +117,10 @@ namespace stream {
 
 		void exec(long start, long end)
 		{
-			#if defined(D_PAPI) || defined(D_PAPI_OPS)
-				//start counters
-    			int thread_id = register_start_thread(papi_op);
-			#endif
-
 			if(end>start){
-
 				for (long i=start; i<end; ++i){
 					operation(i);
 				}
-
-			#if defined(D_PAPI) || defined(D_PAPI_OPS)
-				//end counters
-				papi_stop_agregate(thread_id,papi_op);
-			#endif
 			}
 		}
 
@@ -193,20 +162,9 @@ namespace stream {
 		}
 
 		virtual void run_seq(){
-
-			#if defined(D_PAPI) || defined(D_PAPI_OPS)
-				//start counters
-    			int thread_id = register_start_thread(papi_op);
-			#endif
-    			
 			operation();
 
 			this->end();
-
-			#if defined(D_PAPI) || defined(D_PAPI_OPS)
-				//end counters
-				papi_stop_agregate(thread_id,papi_op);
-			#endif
 		}
 	};
 

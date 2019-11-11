@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2019 Daniel Rodrigues. All rights reserved.
+ */
 #ifndef STREAM_CONSUMER_PRODUCER_H
 #define STREAM_CONSUMER_PRODUCER_H
 
@@ -7,55 +10,128 @@
 #include <ctime>
 #include <tuple>
 #include <boost/thread/thread.hpp>
-#include <boost/lockfree/queue.hpp>
-#include <boost/unordered_map.hpp>
 #include <boost/atomic.hpp>
-#include "data_stream_type.hpp"
 #include "consumer.hpp"
 #include "producer.hpp"
+#include "../../Channel/include/channel.hpp"
+
+#ifdef D_VTUNE
+  #include "../../Vtune_ITT/tracing.h"
+  using namespace vtune_tracing;
+#endif
+
+#if defined(D_PAPI) || defined(D_PAPI_OPS)
+	#include "../../papi_counters/papi_stream.h"
+#endif
 
 using namespace std;
 using namespace boost;
 
 namespace stream {
 
-	template<typename In, typename Out>
+	template<typename IN, typename OUT>
 	class Consumer_Producer: 
-		public Consumer<In>,
-		public Producer<Out>
+		public Consumer<IN>,
+		public Producer<OUT>
 	{
-		typedef Data_Stream_struct<In> In_elem;
-		typedef Data_Stream_struct<Out> Out_elem;
-	
+		typedef Data_Stream_struct<IN> In_elem;
+		typedef Data_Stream_struct<OUT> Out_elem;
+		typedef channel::Channel<OUT> Channel;
+
+	private:
+		#ifdef D_VTUNE
+			vtune_tracing::VTuneDomain *vdomain_;
+		#endif
+		string task;
+
+		//PAPI
+		int papi_op=-1;
+
 	public:
-		Consumer_Producer(int _max_thread, Consumer<In> next):
-			Consumer<In>(_max_thread), Producer<Out>(next)
+		//Construtor
+		Consumer_Producer(long _max_thread, stream::Producer<IN> *prev)
+			: Consumer<IN>(_max_thread,prev), Producer<OUT>()
 		{}
 
-		Consumer_Producer(int _max_thread_consumer, int _max_thread_producer,
-			Consumer<In> next): Consumer<In>(_max_thread_consumer),
-			Producer<Out>(next, _max_thread_producer)
-		{}
+		#if defined(D_PAPI) || defined(D_PAPI_OPS)
+			Consumer_Producer(long _max_thread, int _papi_op, stream::Producer<IN> *prev)
+				: Consumer<IN>(_max_thread,prev),Producer<OUT>(_max_thread)
+			{
+				papi_op=_papi_op;
+			}
+
+			Consumer_Producer(long _max_thread, stream::Producer<IN> *prev,long _n_executions)
+				: Consumer<IN>(_max_thread,prev),Producer<OUT>(_max_thread, _n_executions)
+			{}
+
+			Consumer_Producer(long _max_thread, int papi_op, stream::Producer<IN> *prev,long _n_executions)
+				: Consumer<IN>(_max_thread,prev),Producer<OUT>(_max_thread, _n_executions)
+			{
+				papi_op=_papi_op;
+			}
+		#endif
+
+		#ifdef D_VTUNE
+			Consumer_Producer(long _max_thread, stream::Producer<IN> *prev, 
+								vtune_tracing::VTuneDomain *vdomain)
+				: Consumer<IN>(_max_thread,prev), Producer<OUT>()
+			{
+				vdomain_=vdomain;
+			}
+
+			Consumer_Producer(long _max_thread, stream::Producer<IN> *prev,long _n_executions,
+								vtune_tracing::VTuneDomain *vdomain)
+				: Consumer<IN>(_max_thread,prev,vdomain),Producer<OUT>(_max_thread, _n_executions)
+			{
+				vdomain_=vdomain;
+			}
+		#endif
 
 		virtual ~Consumer_Producer(){}
 
-		inline Out *operation_mult(In_elem *){}
+		using Producer<OUT>::run_seq;
+		using Producer<OUT>::end;
+		using Producer<OUT>::initArray;
 
-		inline void operation() override
-		{
-			ID id=0;
-			Out *out;
-			In_elem *next = NULL;
-			while(Consumer<In>::pop_next(&next)){
-				id = next->id;
-				out = operation_mult(next);
-				if(out)
-					Producer<Out>::send(id,*out);
+		using Consumer<IN>::producers_Done;
+		using Consumer<IN>::finish;
+		using Consumer<IN>::pop_next;
+		using Consumer<IN>::finish_lockFree;
+
+		virtual void operation() override {}
+
+		#if defined(D_PAPI) || defined(D_PAPI_OPS)
+			void papi_counter()
+			{
+				//start counters
+	    		int thread_id = register_start_thread(papi_op);
+	    			
+				operation();
+
+				//end counters
+				papi_stop_agregate(thread_id,papi_op);
 			}
-			Producer<Out>::end();
-		}
+		#endif
 
-		using Consumer<In>::run;
+		void run() override {
+			std::vector<boost::thread*> consumers;
+			int i=0;
+
+			#if defined(D_PAPI) || defined(D_PAPI_OPS)
+				for(i=0;i<Consumer<IN>::consumer_threads;++i)
+					consumers.push_back(new boost::thread(&Consumer_Producer<IN,OUT>::papi_counter, this));
+			#else
+				for(i=0;i<Consumer<IN>::consumer_threads;++i)
+					consumers.push_back(new boost::thread(&Consumer_Producer<IN,OUT>::operation, this));
+			#endif
+
+			for(auto const& consumer_thread: consumers) {
+				consumer_thread->join();
+				delete consumer_thread;
+			}
+
+			this->end();
+		}
 	};
 }
 #endif
