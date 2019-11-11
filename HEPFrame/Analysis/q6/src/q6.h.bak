@@ -1,0 +1,37 @@
+#ifndef la_query_h
+#define la_query_h
+
+#include <cstdlib>
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <DataAnalysis.h>
+#ifdef D_MPI
+	#include <mpi.h>
+#endif
+
+using namespace std;
+
+
+class la_query : public DataAnalysis {
+	// Variables to record per cut
+	TTree *to_write;
+	// Insert your class variables here
+
+
+	void recordVariables (unsigned cut_number, long unsigned this_event_counter);
+	void recordVariablesBoost (long unsigned event);
+	void writeVariables (void);
+	void initRecord (unsigned cuts);
+	void writeResults (void);
+	void fillHistograms (string cut_name);
+	void initialize (void);
+	void finalize (void);
+
+public:
+	la_query (vector<string> _root_file, string _tree_filename, string _output_root_file, string _signal, string _background, unsigned ncuts);
+	la_query (vector<string> _root_file, string _tree_filename, string _output_root_file, string _signal, string _background, string _tree_name, unsigned ncuts);
+};
+
+#endif
