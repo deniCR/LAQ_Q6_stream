@@ -68,7 +68,7 @@ namespace stream {
 			return out->add_consumer();
 		}
 
-		//Adding a new communication with a consumer
+		//Add a new communication with a consumer
 		inline int add_out()
 		{
 			++out_counter;
@@ -104,13 +104,6 @@ namespace stream {
 			return out->forceGetPush();
 		}
 
-		/*
-		 * Performing the production operation of stream elements.
-		 *
-		 * The code should make explicit the creation and sending of the elements.
-		 *
-		 */
-
 		virtual void  init(void) {}
 		virtual void operation(void) {}
 		virtual void operation(long) {}
@@ -124,7 +117,7 @@ namespace stream {
 			}
 		}
 
-		//Inform consumers that the data stream is over
+		//Inform consumers that the stream of data is over
 		inline void end()
 		{
 			out->end();

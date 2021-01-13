@@ -44,8 +44,8 @@ namespace stream {
 		boost::mutex mutex_map1,mutex_map2;
 		
 		//Unsorted_MAP isn't thread safe ...
-  		unordered_map<ID,Elem1*> map1;				//Data received without a pair (IN1)
-  		unordered_map<ID,Elem2*> map2;				//Data received without a pair (IN2)
+  		boost::unordered_map<ID,Elem1*> map1;//Data received without a pair (IN1)
+  		boost::unordered_map<ID,Elem2*> map2;//Data received without a pair (IN2)
 
 	public:
 		//Additional communication channel
@@ -64,7 +64,7 @@ namespace stream {
 		//Search and execute
 		void search_map1(Elem2 *value){
 			ID id = 0;
-			typename unordered_map<ID,Elem1*>::const_iterator got;
+			typename boost::unordered_map<ID,Elem1*>::const_iterator got;
 
 			if(value!=NULL){
 				id = value->id;
@@ -87,7 +87,7 @@ namespace stream {
 		//Search and execute
 		void search_map2(Elem1 *value){
 			ID id = 0;
-			typename unordered_map<ID,Elem2*>::const_iterator got;
+			typename boost::unordered_map<ID,Elem2*>::const_iterator got;
 
 			if(value!=NULL){
 				id = value->id;
@@ -113,16 +113,15 @@ namespace stream {
 			in_join->reuse(elem);
 		}
 
-		/*
-		 * Function executed on the two elements of the stream
-		 */
-		virtual void exec(Elem1 *, Elem2 *){}
+		
+		//Function performed on the two elements of the stream
+		virtual void exec(Elem1 *, Elem2 *) {}
 
 		using Consumer_Producer<IN1,OUT>::producers_Done;
 		using Consumer_Producer<IN1,OUT>::finish;
 		using Consumer_Producer<IN1,OUT>::pop_next;
 		using Consumer_Producer<IN1,OUT>::finish_lockFree;
-		using Consumer_Producer<IN1,OUT>::initArray;
+		//using Consumer_Producer<IN1,OUT>::initArray;
 		using Consumer<IN1>::reuse;
 
 		//Input data join function

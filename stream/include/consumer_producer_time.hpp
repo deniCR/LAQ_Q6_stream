@@ -17,7 +17,6 @@
 
 #include "../../Channel/include/channel.hpp"
 
-
 using namespace std;
 using namespace boost;
 
@@ -42,7 +41,7 @@ namespace stream {
 
 		using Producer<OUT>::run_seq;
 		using Producer<OUT>::end;
-		using Producer<OUT>::initArray;
+		//using Producer<OUT>::initArray; Deprecated
 
 		using Consumer<IN>::producers_Done;
 		using Consumer<IN>::finish;

@@ -20,7 +20,7 @@ using namespace stream;
 using namespace engine;
 
 /*
- * The Producer and Consumer classes are only templates 
+ * The Producer, Consumer, Join and Consumer-Producer classes are only templates 
  * for the development of stream components
 */
 

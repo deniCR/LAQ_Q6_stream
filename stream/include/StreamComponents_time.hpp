@@ -16,7 +16,7 @@ using namespace stream;
 using namespace engine;
 
 /*
- * The Producer and Consumer classes are only templates 
+ * The Producer, Consumer, Join and Consumer-Producer classes are only templates 
  * for the development of stream components
 */
 
@@ -376,7 +376,7 @@ struct Hadamard_FilteredBitVectorBlock_2 :
 			: Join(threads,prev_1,prev_2)
 		{}
 
-		using Join::exec;
+		using Join<FilteredBitVectorBlock,FilteredBitVectorBlock,FilteredBitVectorBlock>::exec;
 
 		inline void exec (Input_1 *in1, Input_2 *in2)
 		{

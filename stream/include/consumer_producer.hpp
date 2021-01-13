@@ -11,8 +11,10 @@
 #include <tuple>
 #include <boost/thread/thread.hpp>
 #include <boost/atomic.hpp>
-#include "consumer.hpp"
-#include "producer.hpp"
+
+#include "consumer_time.hpp"
+#include "producer_time.hpp"
+
 #include "../../Channel/include/channel.hpp"
 
 #ifdef D_VTUNE
@@ -44,7 +46,7 @@ namespace stream {
 		#endif
 		string task;
 
-		//PAPI
+		//PAPI operation id
 		int papi_op=-1;
 
 	public:
@@ -91,14 +93,14 @@ namespace stream {
 
 		using Producer<OUT>::run_seq;
 		using Producer<OUT>::end;
-		using Producer<OUT>::initArray;
+		//using Producer<OUT>::initArray; Deprecated
 
 		using Consumer<IN>::producers_Done;
 		using Consumer<IN>::finish;
 		using Consumer<IN>::pop_next;
 		using Consumer<IN>::finish_lockFree;
 
-		virtual void operation() override {}
+		virtual void operation() {}
 
 		#if defined(D_PAPI) || defined(D_PAPI_OPS)
 			void papi_counter()

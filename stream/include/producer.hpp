@@ -10,8 +10,9 @@
 #include <ctime>
 #include <tuple>
 #include <boost/thread.hpp>
-#include "../../Channel/include/channel.hpp"
 #include <boost/atomic.hpp>
+
+#include "../../Channel/include/channel.hpp"
 
 #ifdef D_VTUNE
   #include "../../Vtune_ITT/tracing.h"

@@ -12,6 +12,7 @@
 #include <boost/thread/thread.hpp>
 #include <boost/atomic.hpp>
 #include "include/producer.hpp"
+
 #include "../../Channel/include/channel.hpp"
 
 #ifdef D_VTUNE
@@ -41,14 +42,16 @@ namespace stream {
 	public:
 		//Number of threads executed by the Consumer
 		long consumer_threads=1;
+		
 		//Consumer input channel
 		Channel *in;
-		//Identifier assigned to the consumer by the Producer of Channel in
+
+		// Identifier assigned to the consumer by the Producer of Channel "input"
 		// It is used to identify, in the Channel class, 
 		// which queue the Consumer is allowed to access/modify
 		int consumer_id=0;
 
-		//PAPI
+		//PAPI operation id
 		int papi_op=-5;
 
 		Consumer(long _n_threads, stream::Producer<T> *_prev)
@@ -142,10 +145,9 @@ namespace stream {
 		 * It is advisable to set the value of the next variable 
 		 * to NULL before executing the function.
 		 */
-
 		bool pop_next(Data_stream** next){
 			bool result = false;
-			int i=0;
+
 			*next=NULL;
 			if(!(in->finish(consumer_id))){
 				result = true;
@@ -167,7 +169,7 @@ namespace stream {
 			return result;
 		}
 
-		//Multithread execution
+		//Multi-thread execution
 		virtual void run()
 		{
 			std::vector<boost::thread*> consumers;

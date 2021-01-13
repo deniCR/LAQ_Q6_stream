@@ -99,7 +99,7 @@ namespace stream {
 		 */
 		bool pop_next(Data_stream** next){
 			bool result = false;
-			int i=0;
+
 			*next=NULL;
 			if(!(in->finish(consumer_id))){
 				result = true;
@@ -108,13 +108,12 @@ namespace stream {
 			return result;
 		}
 
-		//Multithread execution
+		//Multi-thread execution
 		virtual void run()
 		{
 			std::vector<boost::thread*> consumers;
-			int i=0;
 
-			for(i=0;i<consumer_threads;++i)
+			for(int i=0;i<consumer_threads;++i)
 				consumers.push_back(new boost::thread(&Consumer::operation, this));
 
 

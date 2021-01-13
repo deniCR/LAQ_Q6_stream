@@ -91,7 +91,7 @@ namespace stream {
 }
 
 
-/** Versão com locks ... 
+/** Lock version --- Deprecated
 	template <typename T>
 	struct Data_Stream_struct {
 	private:
