@@ -8,7 +8,7 @@ endif
 -include $(MAKE_DIR)/engine_conf.mk
 
 ################################################################################
-# Dirs 
+# LA_engine related Dirs 
 ################################################################################
 
 LAQ_DIR = $(MAKE_DIR)/laq_driver
@@ -16,7 +16,6 @@ ENGINE = $(MAKE_DIR)/engine
 LINTER = $(MAKE_DIR)/lib/styleguide/cpplint/cpplint.py
 GTEST_DIR = $(MAKE_DIR)/lib/googletest/googletest/include
 CEREAL = $(MAKE_DIR)/lib/cereal/include
-DATA_DIR = $(MAKE_DIR)/data
 QUERIES_DIR = $(MAKE_DIR)/queries/cpp
 ENGINE_OBJ_DIR = $(ENGINE)/build
 ENGINE_SRC_DIR = $(ENGINE)/src
@@ -29,7 +28,7 @@ ENGINE_LIB = $(LIB_DIR_ENGINE)/$(LIB_NAME)
 # Compiler Flags & Libraries
 ################################################################################
 
-CXX_ENGINE = icpc
+CXX_ENGINE = dpcpp -std=c++17
 #-Werror
 #/usr/lib/llvm-6.0/bin/clang++
 
@@ -98,10 +97,11 @@ ENGINE_OBJ = $(ENGINE_OBJ_DIR)/block.o \
 
 .PHONY: all basic engine clean delete linter test count
 
-all: basic
+all: basic engine papi time
 
 basic: $(ENGINE_LIB).a \
-		$(ENGINE)/bin/load
+		$(ENGINE)/bin/load \
+		$(DATA_PATH)
 
 engine: basic \
 		$(ENGINE)/bin/6_reuse \
@@ -143,6 +143,9 @@ $(ENGINE)/bin/load: $(DATA_DIR)/tpch_createDB.cpp
 $(ENGINE)/build:
 	mkdir -p $@ $(ENGINE)/bin
 
+$(DATA_PATH):
+	mkdir -p $@ 
+
 ################################################################################
 # Others
 ################################################################################
@@ -159,7 +162,7 @@ clean:
 	rm -f $(LIB_DIR_ENGINE)/$(LIB_NAME)
 
 delete: clean
-	rm -fr  $(DATA_DIR)/la/*
+	rm -fr  $(DATA_DIR)/la
 
 deleteAll: clean delete
 	cd $(DATA_DIR)/dbgen/
